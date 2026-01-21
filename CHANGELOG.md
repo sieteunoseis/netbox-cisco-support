@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-01-21
+
+### Fixed
+
+- Code formatting with black and isort for CI compliance
+
 ## [1.0.0] - 2025-01-21
 
 ### Added
@@ -51,5 +57,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API response caching via Django cache framework
 - Apache 2.0 license
 
-[Unreleased]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/sieteunoseis/netbox-cisco-support/releases/tag/v1.0.0
