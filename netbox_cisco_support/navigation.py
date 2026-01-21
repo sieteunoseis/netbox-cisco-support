@@ -2,7 +2,7 @@
 Navigation menu for NetBox Cisco Support Plugin.
 """
 
-from netbox.plugins import PluginMenu, PluginMenuItem, PluginMenuButton
+from netbox.plugins import PluginMenu, PluginMenuButton, PluginMenuItem
 
 menu = PluginMenu(
     label="Cisco Support",

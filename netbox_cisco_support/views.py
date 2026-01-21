@@ -5,11 +5,11 @@ Views for NetBox Cisco Support Plugin.
 import logging
 import re
 
+from dcim.models import Device
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import render
 from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from dcim.models import Device
 from netbox.views.generic import ObjectView
 from utilities.views import ViewTab, register_model_view
 
@@ -106,7 +106,9 @@ class DeviceCiscoSupportView(ObjectView):
             product_list = product_response.get("product_list", [])
             if product_list:
                 product_data = product_list[0]
-                product_id = product_data.get("base_pid") or product_data.get("orderable_pid")
+                product_id = product_data.get("base_pid") or product_data.get(
+                    "orderable_pid"
+                )
                 product_data["cached"] = product_response.get("cached", False)
 
         # Step 2: Get EoX info by serial number
@@ -205,10 +207,12 @@ class TestConnectionView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
         client = get_client()
         if not client:
-            return JsonResponse({
-                "success": False,
-                "message": "Cisco Support API credentials not configured",
-            })
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "Cisco Support API credentials not configured",
+                }
+            )
 
         result = client.test_connection()
         return JsonResponse(result)

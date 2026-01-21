@@ -78,9 +78,7 @@ class CiscoSupportClient:
             logger.error(f"Failed to get Cisco API token: {e}")
             return None
 
-    def _make_request(
-        self, endpoint: str, params: Optional[dict] = None
-    ) -> dict:
+    def _make_request(self, endpoint: str, params: Optional[dict] = None) -> dict:
         """Make authenticated request to Cisco API."""
         token = self._get_token()
         if not token:
@@ -275,7 +273,9 @@ class CiscoSupportClient:
             cached["cached"] = True
             return cached
 
-        endpoint = f"/software/suggestion/v2/suggestions/software/productIds/{product_id}"
+        endpoint = (
+            f"/software/suggestion/v2/suggestions/software/productIds/{product_id}"
+        )
         result = self._make_request(endpoint)
 
         if "error" not in result:
