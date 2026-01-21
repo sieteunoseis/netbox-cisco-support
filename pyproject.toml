@@ -9,7 +9,7 @@ description = "NetBox plugin for Cisco Support information including product det
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "Adrian Orozco", email = "orozco.a@gmail.com"}
+    {name = "Jeremy Worden", email = "jeremy.worden@gmail.com"}
 ]
 requires-python = ">=3.10"
 classifiers = [

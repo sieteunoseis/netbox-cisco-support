@@ -50,13 +50,14 @@ class DeviceCiscoSupportView(ObjectView):
     template_name = "netbox_cisco_support/device_tab.html"
     tab = ViewTab(
         label="Cisco Support",
-        badge=lambda obj: "EoX" if should_show_cisco_support_tab(obj) else None,
+        weight=9100,
         permission="dcim.view_device",
-        hide_if_empty=True,
+        hide_if_empty=False,
+        visible=should_show_cisco_support_tab,
     )
 
     def get(self, request, pk):
-        device = self.get_object()
+        device = Device.objects.get(pk=pk)
 
         # Check if tab should be shown
         if not should_show_cisco_support_tab(device):
@@ -91,6 +92,7 @@ class DeviceCiscoSupportView(ObjectView):
         bugs_data = None
         psirt_data = None
         software_data = None
+        coverage_data = None
         product_id = None
         error = None
 
@@ -144,6 +146,15 @@ class DeviceCiscoSupportView(ObjectView):
                 software_data = software_response
                 software_data["cached"] = software_response.get("cached", False)
 
+        # Step 6: Get coverage status by serial number
+        if serial_number and not error:
+            coverage_response = client.get_coverage_status(serial_number)
+            if "error" not in coverage_response:
+                serial_numbers = coverage_response.get("serial_numbers", [])
+                if serial_numbers:
+                    coverage_data = serial_numbers[0]
+                    coverage_data["cached"] = coverage_response.get("cached", False)
+
         return render(
             request,
             self.template_name,
@@ -159,6 +170,7 @@ class DeviceCiscoSupportView(ObjectView):
                 "bugs_data": bugs_data,
                 "psirt_data": psirt_data,
                 "software_data": software_data,
+                "coverage_data": coverage_data,
             },
         )
 

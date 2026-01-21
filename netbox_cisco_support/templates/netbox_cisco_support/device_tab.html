@@ -85,6 +85,79 @@
             </div>
         </div>
 
+        <!-- Coverage Status Card -->
+        {% if coverage_data %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="mdi mdi-shield-check"></i> Coverage Status
+                    {% if coverage_data.is_covered == "YES" %}
+                    <span class="badge bg-success text-white ms-2">Covered</span>
+                    {% else %}
+                    <span class="badge bg-danger text-white ms-2">Not Covered</span>
+                    {% endif %}
+                    {% if coverage_data.cached %}
+                    <span class="badge bg-secondary text-white ms-2"><i class="mdi mdi-cached"></i> Cached</span>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <th style="width: 40%;">Serial Number:</th>
+                                <td><code>{{ coverage_data.sr_no|default:serial_number }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>Coverage Status:</th>
+                                <td>
+                                    {% if coverage_data.is_covered == "YES" %}
+                                    <span class="text-success fw-bold"><i class="mdi mdi-check-circle"></i> Covered</span>
+                                    {% else %}
+                                    <span class="text-danger fw-bold"><i class="mdi mdi-close-circle"></i> Not Covered</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Contract Status:</th>
+                                <td>{{ coverage_data.contract_site_customer_name|default:"N/A" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <th style="width: 40%;">Coverage End Date:</th>
+                                <td>
+                                    {% if coverage_data.coverage_end_date %}
+                                    {{ coverage_data.coverage_end_date }}
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Warranty End Date:</th>
+                                <td>
+                                    {% if coverage_data.warranty_end_date %}
+                                    {{ coverage_data.warranty_end_date }}
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Warranty Type:</th>
+                                <td>{{ coverage_data.warranty_type|default:"N/A" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- End-of-Life Status Card -->
         {% if eox_data %}
         <div class="card mb-3">
@@ -385,26 +458,56 @@
                 <div class="card-body">
                     {% for product in software_data.productList %}
                     {% if product.suggestions %}
-                    <h6 class="mb-2">{{ product.product|default:product_id }}</h6>
-                    <table class="table table-sm table-borderless mb-3">
-                        {% for suggestion in product.suggestions %}
-                        <tr>
-                            <th style="width: 30%;">Suggested Release:</th>
-                            <td>
-                                <code>{{ suggestion.releaseTrain|default:suggestion.releaseFormat }}</code>
-                                {% if suggestion.isSuggested %}
-                                <span class="badge bg-success text-white ms-2">Recommended</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% if suggestion.releaseDate %}
-                        <tr>
-                            <th>Release Date:</th>
-                            <td>{{ suggestion.releaseDate }}</td>
-                        </tr>
+                    {% with prod_info=product.product %}
+                    {% if prod_info.productName or prod_info.basePID %}
+                    <h6 class="mb-2">
+                        {% firstof prod_info.productName prod_info.basePID product_id %}
+                        {% if prod_info.softwareType %}
+                        <small class="text-muted">({{ prod_info.softwareType }})</small>
                         {% endif %}
-                        {% endfor %}
-                    </table>
+                    </h6>
+                    {% endif %}
+                    {% endwith %}
+                    {% with first_suggestion=product.suggestions.0 %}
+                    {% if first_suggestion.errorDetailsResponse.errorDescription %}
+                    <div class="text-muted">
+                        <i class="mdi mdi-information"></i> No software recommendations available for {{ product_id }}
+                    </div>
+                    {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Release</th>
+                                    <th>Version</th>
+                                    <th>Release Date</th>
+                                    <th>Lifecycle</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for suggestion in product.suggestions %}
+                            {% if suggestion.releaseTrain or suggestion.releaseFormat1 or suggestion.relDispName %}
+                            <tr>
+                                <td>{% firstof suggestion.trainDispName suggestion.releaseTrain "N/A" %}</td>
+                                <td><code>{% firstof suggestion.releaseFormat1 suggestion.relDispName "N/A" %}</code></td>
+                                <td>{% firstof suggestion.releaseDate "N/A" %}</td>
+                                <td>{% firstof suggestion.releaseLifeCycle "N/A" %}</td>
+                                <td>
+                                    {% if suggestion.isSuggested == "Y" %}
+                                    <span class="badge bg-success text-white">Recommended</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary text-white">Available</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
                     {% endif %}
                     {% empty %}
                     <div class="text-muted">
@@ -419,16 +522,8 @@
         <!-- External Links -->
         <div class="mt-3">
             {% if product_id %}
-            <a href="https://www.cisco.com/c/en/us/support/all-products.html?search={{ product_id }}" target="_blank" class="btn btn-primary btn-sm me-2">
-                <i class="mdi mdi-open-in-new"></i> Search Cisco Support
-            </a>
             <a href="https://bst.cloudapps.cisco.com/bugsearch/search?kw={{ product_id }}" target="_blank" class="btn btn-outline-warning btn-sm me-2">
                 <i class="mdi mdi-bug"></i> Search All Bugs
-            </a>
-            {% endif %}
-            {% if serial_number %}
-            <a href="https://www.cisco.com/cgi-bin/Support/Dnld/dnld.pl?sos={{ serial_number }}" target="_blank" class="btn btn-outline-info btn-sm">
-                <i class="mdi mdi-download"></i> Download Software
             </a>
             {% endif %}
         </div>

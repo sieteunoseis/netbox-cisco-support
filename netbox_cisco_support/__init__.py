@@ -17,8 +17,8 @@ class CiscoSupportConfig(PluginConfig):
     verbose_name = "Cisco Support"
     description = "Display Cisco Support information including product details, EoX dates, bugs, and security advisories"
     version = __version__
-    author = "Adrian Orozco"
-    author_email = "orozco.a@gmail.com"
+    author = "Jeremy Worden"
+    author_email = "jeremy.worden@gmail.com"
     base_url = "cisco-support"
     min_version = "4.0.0"
     max_version = "4.99"

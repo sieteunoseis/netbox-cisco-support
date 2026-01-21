@@ -96,7 +96,8 @@ The tab displays:
 
 ## Screenshots
 
-*Screenshots coming soon*
+### Device Cisco Support Tab
+![Cisco Support Device Tab](docs/screenshot-device.png)
 
 ## Development
 
@@ -125,7 +126,7 @@ Apache License 2.0 - See [LICENSE](LICENSE) for details.
 
 ## Author
 
-Adrian Orozco ([@sieteunoseis](https://github.com/sieteunoseis))
+Jeremy Worden ([@sieteunoseis](https://github.com/sieteunoseis))
 
 ## Links
 

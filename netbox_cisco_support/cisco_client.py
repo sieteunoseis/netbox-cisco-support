@@ -265,7 +265,7 @@ class CiscoSupportClient:
         """
         Get software release suggestions for a product.
 
-        API: GET /software/v4.0/suggestions/releases/productIds/{product_id}
+        API: GET /software/suggestion/v2/suggestions/software/productIds/{product_id}
 
         Returns suggested software versions and upgrade paths.
         """
@@ -275,7 +275,30 @@ class CiscoSupportClient:
             cached["cached"] = True
             return cached
 
-        endpoint = f"/software/v4.0/suggestions/releases/productIds/{product_id}"
+        endpoint = f"/software/suggestion/v2/suggestions/software/productIds/{product_id}"
+        result = self._make_request(endpoint)
+
+        if "error" not in result:
+            result["cached"] = False
+            cache.set(cache_key, result, self.cache_timeout)
+
+        return result
+
+    def get_coverage_status(self, serial_number: str) -> dict:
+        """
+        Get coverage status by serial number.
+
+        API: GET /sn2info/v2/coverage/status/serial_numbers/{serial_number}
+
+        Returns contract coverage status including warranty and service contract info.
+        """
+        cache_key = f"cisco_coverage_{serial_number}"
+        cached = cache.get(cache_key)
+        if cached:
+            cached["cached"] = True
+            return cached
+
+        endpoint = f"/sn2info/v2/coverage/status/serial_numbers/{serial_number}"
         result = self._make_request(endpoint)
 
         if "error" not in result:
