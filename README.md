@@ -26,7 +26,7 @@ A NetBox plugin that displays Cisco Support information for devices, including:
 ### Via pip (recommended)
 
 ```bash
-pip install netbox-cisco-support
+pip install netbox-cisco-support-api
 ```
 
 ### From source

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2025-01-21
+
+### Changed
+
+- Renamed PyPI package to `netbox-cisco-support-api` (original name was taken)
+
 ## [1.0.1] - 2025-01-21
 
 ### Fixed
@@ -57,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API response caching via Django cache framework
 - Apache 2.0 license
 
-[Unreleased]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/sieteunoseis/netbox-cisco-support/releases/tag/v1.0.0
