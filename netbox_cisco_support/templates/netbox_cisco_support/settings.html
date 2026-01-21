@@ -1,0 +1,198 @@
+{% extends 'generic/object.html' %}
+{% load helpers %}
+
+{% block title %}Cisco Support Settings{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item">
+    <a href="{% url 'plugins:netbox_cisco_support:settings' %}">Cisco Support</a>
+</li>
+<li class="breadcrumb-item active">Settings</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <!-- Current Configuration -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="mdi mdi-cog"></i> Current Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th style="width: 30%;">Client ID</th>
+                        <td>
+                            {% if config.cisco_client_id %}
+                            <code>{{ config.cisco_client_id|slice:":8" }}********</code>
+                            <span class="badge bg-success text-white ms-2">Configured</span>
+                            {% else %}
+                            <span class="text-danger">Not configured</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Client Secret</th>
+                        <td>
+                            {% if config.cisco_client_secret %}
+                            <code>********</code>
+                            <span class="badge bg-success text-white ms-2">Configured</span>
+                            {% else %}
+                            <span class="text-danger">Not configured</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Manufacturer Pattern</th>
+                        <td><code>{{ config.manufacturer_pattern|default:"cisco" }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>API Timeout</th>
+                        <td>{{ config.timeout|default:"30" }} seconds</td>
+                    </tr>
+                    <tr>
+                        <th>Cache Timeout</th>
+                        <td>{{ config.cache_timeout|default:"300" }} seconds</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Test Connection -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="mdi mdi-connection"></i> API Connection Test
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Test connectivity to the Cisco Support APIs.</p>
+                <button type="button" class="btn btn-primary" id="test-connection-btn">
+                    <i class="mdi mdi-lan-connect"></i> Test Connection
+                </button>
+                <span id="test-result" class="ms-3"></span>
+            </div>
+        </div>
+
+        <!-- Configuration Help -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="mdi mdi-help-circle"></i> Configuration Help
+                </h5>
+            </div>
+            <div class="card-body">
+                <p>Configure this plugin in your NetBox <code>configuration.py</code> file:</p>
+                <pre class="bg-dark text-light p-3 rounded"><code>PLUGINS_CONFIG = {
+    'netbox_cisco_support': {
+        # Required: Cisco API credentials
+        # Get from: https://apidocs-prod.cisco.com/
+        'cisco_client_id': 'your-client-id',
+        'cisco_client_secret': 'your-client-secret',
+
+        # Optional: Manufacturer matching pattern (regex)
+        # Default: r'cisco' (case-insensitive)
+        'manufacturer_pattern': r'cisco',
+
+        # Optional: API request timeout in seconds
+        'timeout': 30,
+
+        # Optional: Cache duration for API responses in seconds
+        'cache_timeout': 300,
+    }
+}</code></pre>
+
+                <h6 class="mt-4">Getting Cisco API Credentials</h6>
+                <ol>
+                    <li>Go to <a href="https://apidocs-prod.cisco.com/" target="_blank">Cisco API Console</a></li>
+                    <li>Sign in with your Cisco CCO ID</li>
+                    <li>Register a new application</li>
+                    <li>Request access to the following APIs:
+                        <ul>
+                            <li>Product Information API</li>
+                            <li>End of Life (EoX) API</li>
+                            <li>Bug API</li>
+                            <li>PSIRT (Security Advisory) API</li>
+                            <li>Software Suggestion API</li>
+                        </ul>
+                    </li>
+                    <li>Copy your Client ID and Client Secret</li>
+                </ol>
+
+                <h6 class="mt-4">Tab Visibility</h6>
+                <p>The "Cisco Support" tab will appear on devices that meet <strong>both</strong> requirements:</p>
+                <ul>
+                    <li>Device has a <strong>serial number</strong> assigned</li>
+                    <li>Device manufacturer matches the <code>manufacturer_pattern</code> (default: "cisco")</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="mdi mdi-information"></i> About
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <th>Plugin Name:</th>
+                        <td>Cisco Support</td>
+                    </tr>
+                    <tr>
+                        <th>Version:</th>
+                        <td>1.0.0</td>
+                    </tr>
+                    <tr>
+                        <th>Author:</th>
+                        <td>Adrian Orozco</td>
+                    </tr>
+                </table>
+                <hr>
+                <h6>Cisco APIs Used</h6>
+                <ul class="mb-0">
+                    <li><a href="https://developer.cisco.com/docs/support-apis/#!product-information" target="_blank">Product Information</a></li>
+                    <li><a href="https://developer.cisco.com/docs/support-apis/#!eox" target="_blank">End of Life (EoX)</a></li>
+                    <li><a href="https://developer.cisco.com/docs/support-apis/#!bug" target="_blank">Bug API</a></li>
+                    <li><a href="https://developer.cisco.com/docs/support-apis/#!psirt-openVuln" target="_blank">PSIRT Security Advisories</a></li>
+                    <li><a href="https://developer.cisco.com/docs/support-apis/#!software-suggestion" target="_blank">Software Suggestion</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('test-connection-btn').addEventListener('click', function() {
+    var btn = this;
+    var resultSpan = document.getElementById('test-result');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Testing...';
+    resultSpan.innerHTML = '';
+    
+    fetch('{% url "plugins:netbox_cisco_support:test_connection" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                resultSpan.innerHTML = '<span class="text-success"><i class="mdi mdi-check-circle"></i> ' + data.message + '</span>';
+            } else {
+                resultSpan.innerHTML = '<span class="text-danger"><i class="mdi mdi-alert-circle"></i> ' + data.message + '</span>';
+            }
+        })
+        .catch(error => {
+            resultSpan.innerHTML = '<span class="text-danger"><i class="mdi mdi-alert-circle"></i> Connection test failed: ' + error + '</span>';
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="mdi mdi-lan-connect"></i> Test Connection';
+        });
+});
+</script>
+{% endblock %}
