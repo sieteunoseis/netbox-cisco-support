@@ -1,5 +1,11 @@
 # NetBox Cisco Support Plugin
 
+![NetBox Version](https://img.shields.io/badge/NetBox-4.0+-blue)
+![Python Version](https://img.shields.io/badge/Python-3.10+-green)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![CI](https://github.com/sieteunoseis/netbox-cisco-support/actions/workflows/ci.yml/badge.svg)](https://github.com/sieteunoseis/netbox-cisco-support/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/netbox-cisco-support-api)](https://pypi.org/project/netbox-cisco-support-api/)
+
 A NetBox plugin that displays Cisco Support information for devices, including:
 - **Product Information** - Product name, series, category, and orderable status
 - **End-of-Life (EoX)** - Key lifecycle dates with migration recommendations
