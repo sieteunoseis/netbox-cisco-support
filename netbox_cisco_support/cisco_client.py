@@ -235,6 +235,132 @@ class CiscoSupportClient:
 
         return result
 
+    def get_bugs_by_product_and_version(
+        self,
+        product_id: str,
+        software_version: str,
+        severity: Optional[str] = None,
+        status: Optional[str] = None,
+        page_index: int = 1,
+    ) -> dict:
+        """
+        Get bugs for a product ID and specific software version.
+
+        API: GET /bug/v2.0/bugs/products/product_id/{product_id}/software_releases/{software_version}
+
+        Args:
+            product_id: Cisco product ID (PID) e.g., C9800-40-K9
+            software_version: Software release version e.g., 17.9.5
+            severity: Filter by severity (1-6, comma-separated)
+            status: Filter by status (O=Open, F=Fixed, T=Terminated)
+            page_index: Page number for pagination
+
+        Returns bugs array with bug_id, headline, severity, status.
+        """
+        cache_key = f"cisco_bugs_ver_{product_id}_{software_version}_{severity}_{status}_{page_index}"
+        cached = cache.get(cache_key)
+        if cached:
+            cached["cached"] = True
+            return cached
+
+        endpoint = f"/bug/v2.0/bugs/products/product_id/{product_id}/software_releases/{software_version}"
+        params = {"page_index": page_index}
+        if severity:
+            params["severity"] = severity
+        if status:
+            params["status"] = status
+
+        result = self._make_request(endpoint, params)
+
+        if "error" not in result:
+            result["cached"] = False
+            cache.set(cache_key, result, self.cache_timeout)
+
+        return result
+
+    def get_bugs_by_product_name_and_version(
+        self,
+        product_name: str,
+        affected_release: str,
+        modified_date: int = 5,
+        severity: Optional[str] = None,
+    ) -> dict:
+        """
+        Get bugs by product name and affected release version.
+
+        API: GET /bug/v2.0/bugs/product_name/{product_name}/affected_releases/{version}
+
+        Args:
+            product_name: Full product name (e.g., "Cisco Catalyst 9300 Series Switches")
+            affected_release: Software version (e.g., "17.9.5")
+            modified_date: Modified within last N days (default 5)
+            severity: Filter by severity (1-6, comma-separated)
+
+        Returns bugs array with bug_id, headline, severity, status.
+        """
+        cache_key = f"cisco_bugs_name_{hash(product_name)}_{affected_release}_{modified_date}_{severity}"
+        cached = cache.get(cache_key)
+        if cached:
+            cached["cached"] = True
+            return cached
+
+        # URL encode the product name for the path
+        from urllib.parse import quote
+        encoded_name = quote(product_name, safe="")
+        endpoint = f"/bug/v2.0/bugs/product_name/{encoded_name}/affected_releases/{affected_release}"
+        params = {"modified_date": modified_date}
+        if severity:
+            params["severity"] = severity
+
+        result = self._make_request(endpoint, params)
+
+        if "error" not in result:
+            result["cached"] = False
+            cache.set(cache_key, result, self.cache_timeout)
+
+        return result
+
+    def get_bugs_by_keyword(
+        self,
+        keyword: str,
+        severity: Optional[str] = None,
+        status: Optional[str] = None,
+        page_index: int = 1,
+    ) -> dict:
+        """
+        Get bugs by keyword search.
+
+        API: GET /bug/v2.0/bugs/keyword/{keyword}
+
+        Args:
+            keyword: Search keyword (e.g., "C9300-48P")
+            severity: Filter by severity (1-6, comma-separated)
+            status: Filter by status (O=Open, F=Fixed, T=Terminated)
+            page_index: Page number for pagination
+
+        Returns bugs array with bug_id, headline, severity, status.
+        """
+        cache_key = f"cisco_bugs_kw_{keyword}_{severity}_{status}_{page_index}"
+        cached = cache.get(cache_key)
+        if cached:
+            cached["cached"] = True
+            return cached
+
+        endpoint = f"/bug/v2.0/bugs/keyword/{keyword}"
+        params = {"page_index": page_index}
+        if severity:
+            params["severity"] = severity
+        if status:
+            params["status"] = status
+
+        result = self._make_request(endpoint, params)
+
+        if "error" not in result:
+            result["cached"] = False
+            cache.set(cache_key, result, self.cache_timeout)
+
+        return result
+
     def get_psirt_by_product(self, product_id: str) -> dict:
         """
         Get PSIRT security advisories for a product.
@@ -299,6 +425,39 @@ class CiscoSupportClient:
             return cached
 
         endpoint = f"/sn2info/v2/coverage/status/serial_numbers/{serial_number}"
+        result = self._make_request(endpoint)
+
+        if "error" not in result:
+            result["cached"] = False
+            cache.set(cache_key, result, self.cache_timeout)
+
+        return result
+
+    def get_coverage_summary_bulk(self, serial_numbers: list) -> dict:
+        """
+        Get coverage summary for multiple serial numbers (e.g., switch stacks).
+
+        API: GET /sn2info/v2/coverage/summary/serial_numbers/{sr_no,...}
+
+        Args:
+            serial_numbers: List of serial numbers (up to 75)
+
+        Returns coverage summary for all serial numbers with is_covered, coverage_end_date, etc.
+        """
+        if not serial_numbers:
+            return {"error": "No serial numbers provided"}
+
+        # API supports up to 75 serial numbers
+        serial_numbers = serial_numbers[:75]
+        serials_str = ",".join(serial_numbers)
+
+        cache_key = f"cisco_coverage_bulk_{hash(serials_str)}"
+        cached = cache.get(cache_key)
+        if cached:
+            cached["cached"] = True
+            return cached
+
+        endpoint = f"/sn2info/v2/coverage/summary/serial_numbers/{serials_str}"
         result = self._make_request(endpoint)
 
         if "error" not in result:

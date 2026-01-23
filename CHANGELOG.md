@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2025-01-23
+
+### Added
+
+- **Known Bugs Card (Keyword Search)** - Shows high-severity bugs (1-3) for the device type model
+- **Version-Specific Bugs Card** - Shows bugs affecting the device's software version using `cc_series` custom field or product ID
+- **Stack Coverage Display** - Shows coverage status for all stack members when device serial contains multiple serials
+- Comma-separated serial number parsing for switch stacks
+- "No critical bugs found" indicator when bug searches return empty results
+
+### Changed
+
+- Optimized database queries with `select_related()` for better performance
+- Bug severity filtering done client-side (Cisco API severity parameter causes 500 errors)
+- Improved template layout with collapsible cards for each data section
+
+## [1.0.3] - 2025-01-22
+
+### Fixed
+
+- Fixed template packaging for PyPI distribution
+
 ## [1.0.2] - 2025-01-21
 
 ### Changed
@@ -63,7 +85,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API response caching via Django cache framework
 - Apache 2.0 license
 
-[Unreleased]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.3...v1.0.4
+[1.0.3]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/sieteunoseis/netbox-cisco-support/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/sieteunoseis/netbox-cisco-support/releases/tag/v1.0.0
