@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-cisco-support-api"
-version = "1.0.2"
+version = "1.0.3"
 description = "NetBox plugin for Cisco Support information including product details, EoX dates, bugs, and security advisories"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -36,6 +36,9 @@ Changelog = "https://github.com/sieteunoseis/netbox-cisco-support/blob/main/CHAN
 
 [tool.setuptools.packages.find]
 include = ["netbox_cisco_support*"]
+
+[tool.setuptools.package-data]
+netbox_cisco_support = ["templates/**/*.html"]
 
 [tool.black]
 line-length = 88
