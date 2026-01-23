@@ -1,6 +1,6 @@
 # NetBox Cisco Support Plugin
 
-<img src="docs/icon.png" alt="NetBox Cisco Support Plugin" width="100" align="right">
+<img src="https://raw.githubusercontent.com/sieteunoseis/netbox-cisco-support/main/docs/icon.png" alt="NetBox Cisco Support Plugin" width="100" align="right">
 
 ![NetBox Version](https://img.shields.io/badge/NetBox-4.0+-blue)
 ![Python Version](https://img.shields.io/badge/Python-3.10+-green)
