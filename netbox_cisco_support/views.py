@@ -58,7 +58,7 @@ class DeviceCiscoSupportView(ObjectView):
 
     def get(self, request, pk):
         device = Device.objects.select_related(
-            'device_type__manufacturer', 'platform'
+            "device_type__manufacturer", "platform"
         ).get(pk=pk)
 
         # Check if tab should be shown
@@ -109,7 +109,9 @@ class DeviceCiscoSupportView(ObjectView):
         # e.g., "FCW2220G1DM, FCW2221E03P" for a 2-member stack
         all_serials = self._parse_serials(device.serial)
         serial_number = all_serials[0] if all_serials else device.serial
-        stack_serials = all_serials[1:] if len(all_serials) > 1 else self._get_stack_serials(device)
+        stack_serials = (
+            all_serials[1:] if len(all_serials) > 1 else self._get_stack_serials(device)
+        )
 
         # Step 1: Get product info from serial number
         product_response = client.get_product_info(serial_number)
@@ -155,15 +157,18 @@ class DeviceCiscoSupportView(ObjectView):
             bugs_response = client.get_bugs_by_keyword(device_type_model)
 
         # Approach 2: Fall back to product_id endpoint
-        if (bugs_response is None or "error" in bugs_response) and bug_pid and not error:
+        if (
+            (bugs_response is None or "error" in bugs_response)
+            and bug_pid
+            and not error
+        ):
             bugs_response = client.get_bugs_by_product(bug_pid)
 
         if bugs_response and "error" not in bugs_response:
             # Filter for high severity bugs (1-3) client-side
             all_bugs = bugs_response.get("bugs", [])
             high_severity_bugs = [
-                b for b in all_bugs
-                if b.get("severity") in ["1", "2", "3", 1, 2, 3]
+                b for b in all_bugs if b.get("severity") in ["1", "2", "3", 1, 2, 3]
             ][:5]
             bugs_data = {
                 "bugs": high_severity_bugs if high_severity_bugs else all_bugs[:5],
@@ -190,11 +195,14 @@ class DeviceCiscoSupportView(ObjectView):
             # Filter for high severity bugs (1-3) client-side
             all_ver_bugs = bugs_ver_response.get("bugs", [])
             high_severity_ver_bugs = [
-                b for b in all_ver_bugs
-                if b.get("severity") in ["1", "2", "3", 1, 2, 3]
+                b for b in all_ver_bugs if b.get("severity") in ["1", "2", "3", 1, 2, 3]
             ][:5]
             bugs_version_data = {
-                "bugs": high_severity_ver_bugs if high_severity_ver_bugs else all_ver_bugs[:5],
+                "bugs": (
+                    high_severity_ver_bugs
+                    if high_severity_ver_bugs
+                    else all_ver_bugs[:5]
+                ),
                 "version": software_version,
                 "cached": bugs_ver_response.get("cached", False),
             }
@@ -229,13 +237,17 @@ class DeviceCiscoSupportView(ObjectView):
         # Step 6b: Get stack coverage (if stack serials available)
         if stack_serials and not error:
             # Include primary serial in the list if not already there
-            all_serials = [serial_number] + [s for s in stack_serials if s != serial_number]
+            all_serials = [serial_number] + [
+                s for s in stack_serials if s != serial_number
+            ]
             stack_response = client.get_coverage_summary_bulk(all_serials)
             if "error" not in stack_response:
                 stack_serial_list = stack_response.get("serial_numbers", [])
                 if stack_serial_list:
                     # Calculate summary stats
-                    covered = sum(1 for s in stack_serial_list if s.get("is_covered") == "YES")
+                    covered = sum(
+                        1 for s in stack_serial_list if s.get("is_covered") == "YES"
+                    )
                     not_covered = len(stack_serial_list) - covered
                     stack_coverage_data = {
                         "members": stack_serial_list,
@@ -296,7 +308,10 @@ class DeviceCiscoSupportView(ObjectView):
         # Check custom fields
         if hasattr(device, "custom_field_data") and device.custom_field_data:
             for field in ["software_version", "sw_version", "ios_version", "version"]:
-                if field in device.custom_field_data and device.custom_field_data[field]:
+                if (
+                    field in device.custom_field_data
+                    and device.custom_field_data[field]
+                ):
                     return str(device.custom_field_data[field])
 
         # Check platform (sometimes includes version info)

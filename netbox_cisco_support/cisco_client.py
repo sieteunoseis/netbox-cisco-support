@@ -306,6 +306,7 @@ class CiscoSupportClient:
 
         # URL encode the product name for the path
         from urllib.parse import quote
+
         encoded_name = quote(product_name, safe="")
         endpoint = f"/bug/v2.0/bugs/product_name/{encoded_name}/affected_releases/{affected_release}"
         params = {"modified_date": modified_date}
