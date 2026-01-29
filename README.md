@@ -105,7 +105,7 @@ The tab displays:
 ## Screenshots
 
 ### Device Cisco Support Tab
-![Cisco Support Device Tab](docs/screenshot-device.png)
+![Cisco Support Device Tab](https://raw.githubusercontent.com/sieteunoseis/netbox-cisco-support/main/docs/screenshot-device.png)
 
 ## Development
 
