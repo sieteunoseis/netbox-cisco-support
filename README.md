@@ -77,16 +77,49 @@ Restart NetBox after making configuration changes.
 
 ## Getting Cisco API Credentials
 
-1. Go to [Cisco API Console](https://apidocs-prod.cisco.com/)
+1. Go to [Cisco API Console](https://apiconsole.cisco.com/)
 2. Sign in with your Cisco CCO ID
-3. Register a new application
-4. Request access to the following APIs:
-   - Product Information API
-   - End of Life (EoX) API
-   - Bug API
-   - PSIRT (Security Advisory) API
-   - Software Suggestion API
-5. Copy your Client ID and Client Secret
+3. Create a new application (or use an existing one)
+4. Add the following APIs to your application:
+
+| API Name | Purpose | Required |
+|----------|---------|----------|
+| **Serial Number to Information (SN2Info) v2** | Coverage status, warranty dates | Yes |
+| **Product Information API** | Product name, series, orderable status | Yes |
+| **End of Life (EoX) API** | End-of-Life/Sale dates, migration info | Yes |
+| **Bug API v2** | Known bugs by product/software version | Recommended |
+| **PSIRT API** | Security advisories | Recommended |
+| **Software Suggestion API** | Recommended software versions | Optional |
+
+5. Copy your **Client ID** and **Client Secret**
+
+### API Endpoints Used
+
+The plugin calls these specific endpoints:
+
+```
+# Coverage/Warranty
+GET /sn2info/v2/coverage/status/serial_numbers/{serial}
+GET /sn2info/v2/coverage/summary/serial_numbers/{serials}
+
+# Product Information
+GET /product/v1/information/serial_numbers/{serial}
+
+# End of Life
+GET /supporttools/eox/rest/5/EOXBySerialNumber/1/{serial}
+
+# Bugs
+GET /bug/v3.0/bugs/products/product_id/{pid}
+GET /bug/v3.0/bugs/software_version/{version}
+
+# Security Advisories
+GET /security/advisories/v2/product
+
+# Software Suggestions
+GET /software/v4.0/suggestions/releases/productIds/{pid}
+```
+
+All APIs use OAuth2 client credentials flow with the same client_id/client_secret.
 
 ## Usage
 
