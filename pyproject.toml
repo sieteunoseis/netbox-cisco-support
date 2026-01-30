@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-cisco-support-api"
-version = "1.0.5"
+version = "1.0.6"
 description = "NetBox plugin for Cisco Support information including product details, EoX dates, bugs, and security advisories"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "Jeremy Worden", email = "jeremy.worden@gmail.com"}
+    {name = "sieteunoseis", email = "jeremy.worden@gmail.com"}
 ]
 requires-python = ">=3.10"
 classifiers = [
