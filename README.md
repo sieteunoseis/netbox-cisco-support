@@ -169,6 +169,12 @@ Apache License 2.0 - See [LICENSE](LICENSE) for details.
 
 Jeremy Worden ([@sieteunoseis](https://github.com/sieteunoseis))
 
+## Support
+
+If you find this plugin helpful, consider supporting development:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/automatebldrs)
+
 ## Links
 
 - [GitHub Repository](https://github.com/sieteunoseis/netbox-cisco-support)
