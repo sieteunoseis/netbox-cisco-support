@@ -1,0 +1,701 @@
+{% load helpers %}
+
+{% if error %}
+<div class="alert alert-warning">
+    <i class="mdi mdi-alert"></i> {{ error }}
+</div>
+{% elif product_data %}
+
+<!-- Product Information Card -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="mdi mdi-tag"></i> Product Information
+            {% if product_data.cached %}
+            <span class="badge bg-secondary text-white ms-2"><i class="mdi mdi-cached"></i> Cached</span>
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <th style="width: 40%;">Serial Number:</th>
+                        <td><code>{{ serial_number }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>Product ID (PID):</th>
+                        <td><code>{{ product_data.base_pid|default:product_data.orderable_pid|default:"N/A" }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>Orderable PID:</th>
+                        <td>{{ product_data.orderable_pid|default:"N/A" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Product Name:</th>
+                        <td>{{ product_data.product_name|default:"N/A" }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <th style="width: 40%;">Product Series:</th>
+                        <td>{{ product_data.product_series|default:"N/A" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Product Category:</th>
+                        <td>{{ product_data.product_category|default:"N/A" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Product Type:</th>
+                        <td>{{ product_data.product_type|default:"N/A" }}</td>
+                    </tr>
+                    {% if software_version %}
+                    <tr>
+                        <th>Software Version:</th>
+                        <td><code>{{ software_version }}</code></td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th>Orderable Status:</th>
+                        <td>
+                            {% if product_data.orderable_status == "O" %}
+                            <span class="badge bg-success text-white">Orderable</span>
+                            {% elif product_data.orderable_status == "N" %}
+                            <span class="badge bg-danger text-white">Not Orderable</span>
+                            {% else %}
+                            <span class="badge bg-secondary text-white">{{ product_data.orderable_status|default:"Unknown" }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% if product_data.product_support_page %}
+        <div class="mt-3">
+            <a href="{{ product_data.product_support_page }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                <i class="mdi mdi-open-in-new"></i> View Product Support Page
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Coverage Status Card -->
+{% if coverage_data %}
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="mdi mdi-shield-check"></i> Coverage Status
+            {% if coverage_data.is_covered == "YES" %}
+            <span class="badge bg-success text-white ms-2">Covered</span>
+            {% else %}
+            <span class="badge bg-danger text-white ms-2">Not Covered</span>
+            {% endif %}
+            {% if coverage_data.cached %}
+            <span class="badge bg-secondary text-white ms-2"><i class="mdi mdi-cached"></i> Cached</span>
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <th style="width: 40%;">Serial Number:</th>
+                        <td><code>{{ coverage_data.sr_no|default:serial_number }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>Coverage Status:</th>
+                        <td>
+                            {% if coverage_data.is_covered == "YES" %}
+                            <span class="text-success fw-bold"><i class="mdi mdi-check-circle"></i> Covered</span>
+                            {% else %}
+                            <span class="text-danger fw-bold"><i class="mdi mdi-close-circle"></i> Not Covered</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Contract Status:</th>
+                        <td>{{ coverage_data.contract_site_customer_name|default:"N/A" }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <th style="width: 40%;">Coverage End Date:</th>
+                        <td>
+                            {% if coverage_data.coverage_end_date %}
+                            {{ coverage_data.coverage_end_date }}
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Warranty End Date:</th>
+                        <td>
+                            {% if coverage_data.warranty_end_date %}
+                            {{ coverage_data.warranty_end_date }}
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Warranty Type:</th>
+                        <td>{{ coverage_data.warranty_type|default:"N/A" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Stack Coverage Card -->
+{% if stack_coverage_data %}
+<div class="card mb-3">
+    <div class="card-header" data-bs-toggle="collapse" data-bs-target="#stack-coverage-section" style="cursor: pointer;">
+        <h5 class="card-title mb-0">
+            <i class="mdi mdi-layers-triple"></i> Stack Member Coverage
+            <span class="badge bg-success text-white ms-2">{{ stack_coverage_data.covered }} Covered</span>
+            {% if stack_coverage_data.not_covered > 0 %}
+            <span class="badge bg-danger text-white ms-2">{{ stack_coverage_data.not_covered }} Not Covered</span>
+            {% endif %}
+            {% if stack_coverage_data.cached %}
+            <span class="badge bg-secondary text-white ms-2"><i class="mdi mdi-cached"></i> Cached</span>
+            {% endif %}
+            <i class="mdi mdi-chevron-down float-end"></i>
+        </h5>
+    </div>
+    <div id="stack-coverage-section" class="collapse show">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Serial Number</th>
+                            <th>Coverage Status</th>
+                            <th>Contract Status</th>
+                            <th>Coverage End Date</th>
+                            <th>Warranty End Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in stack_coverage_data.members %}
+                        <tr>
+                            <td>
+                                <code>{{ member.sr_no }}</code>
+                                {% if member.sr_no == serial_number %}
+                                <span class="badge bg-primary text-white ms-1">Primary</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if member.is_covered == "YES" %}
+                                <span class="text-success fw-bold"><i class="mdi mdi-check-circle"></i> Covered</span>
+                                {% else %}
+                                <span class="text-danger fw-bold"><i class="mdi mdi-close-circle"></i> Not Covered</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ member.contract_site_customer_name|default:"N/A" }}</td>
+                            <td>{{ member.coverage_end_date|default:"N/A" }}</td>
+                            <td>{{ member.warranty_end_date|default:"N/A" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-2 text-muted small">
+                Total: {{ stack_coverage_data.total }} member{{ stack_coverage_data.total|pluralize }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- End-of-Life Status Card -->
+{% if eox_data %}
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="mdi mdi-calendar-clock"></i> End-of-Life Status
+            {% if eox_data.EOLProductID %}
+            <span class="badge bg-warning text-dark ms-2">EoX Announced</span>
+            {% endif %}
+            {% if eox_data.cached %}
+            <span class="badge bg-secondary text-white ms-2"><i class="mdi mdi-cached"></i> Cached</span>
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <th style="width: 50%;">Product ID:</th>
+                        <td><code>{{ eox_data.EOLProductID|default:"N/A" }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>End of Sale Date:</th>
+                        <td>
+                            {% if eox_data.EndOfSaleDate.value %}
+                            <span class="{% if eox_data.EndOfSaleDate.value < today %}text-danger fw-bold{% endif %}">
+                                {{ eox_data.EndOfSaleDate.value }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>End of SW Maintenance:</th>
+                        <td>
+                            {% if eox_data.EndOfSWMaintenanceReleases.value %}
+                            <span class="{% if eox_data.EndOfSWMaintenanceReleases.value < today %}text-danger fw-bold{% endif %}">
+                                {{ eox_data.EndOfSWMaintenanceReleases.value }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>End of Security Support:</th>
+                        <td>
+                            {% if eox_data.EndOfSecurityVulSupportDate.value %}
+                            <span class="{% if eox_data.EndOfSecurityVulSupportDate.value < today %}text-danger fw-bold{% endif %}">
+                                {{ eox_data.EndOfSecurityVulSupportDate.value }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <th style="width: 50%;">End of Routine Failure:</th>
+                        <td>
+                            {% if eox_data.EndOfRoutineFailureAnalysisDate.value %}
+                            {{ eox_data.EndOfRoutineFailureAnalysisDate.value }}
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>End of Service Renewal:</th>
+                        <td>
+                            {% if eox_data.EndOfServiceContractRenewal.value %}
+                            {{ eox_data.EndOfServiceContractRenewal.value }}
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Last Date of Support:</th>
+                        <td>
+                            {% if eox_data.LastDateOfSupport.value %}
+                            <span class="{% if eox_data.LastDateOfSupport.value < today %}text-danger fw-bold{% endif %}">
+                                {{ eox_data.LastDateOfSupport.value }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Migration Product:</th>
+                        <td>
+                            {% if eox_data.EOXMigrationDetails.MigrationProductId %}
+                            <code>{{ eox_data.EOXMigrationDetails.MigrationProductId }}</code>
+                            {% if eox_data.EOXMigrationDetails.MigrationProductInfoURL %}
+                            <a href="{{ eox_data.EOXMigrationDetails.MigrationProductInfoURL }}" target="_blank" class="ms-1">
+                                <i class="mdi mdi-open-in-new"></i>
+                            </a>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% if eox_data.LinkToProductBulletinURL %}
+        <div class="mt-3">
+            <a href="{{ eox_data.LinkToProductBulletinURL }}" target="_blank" class="btn btn-outline-warning btn-sm">
+                <i class="mdi mdi-open-in-new"></i> View EoX Bulletin
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Security Advisories Card -->
+{% if psirt_data %}
+<div class="card mb-3">
+    <div class="card-header" data-bs-toggle="collapse" data-bs-target="#psirt-section" style="cursor: pointer;">
+        <h5 class="card-title mb-0">
+            <i class="mdi mdi-shield-alert"></i> Security Advisories (PSIRT)
+            {% if psirt_data.total > 0 %}
+            <span class="badge bg-danger text-white ms-2">{{ psirt_data.total }} Advisory{{ psirt_data.total|pluralize:",ies" }}</span>
+            {% else %}
+            <span class="badge bg-success text-white ms-2">No Advisories</span>
+            {% endif %}
+            {% if psirt_data.cached %}
+            <span class="badge bg-secondary text-white ms-2"><i class="mdi mdi-cached"></i> Cached</span>
+            {% endif %}
+            <i class="mdi mdi-chevron-down float-end"></i>
+        </h5>
+    </div>
+    <div id="psirt-section" class="collapse {% if psirt_data.total > 0 %}show{% endif %}">
+        <div class="card-body">
+            {% if psirt_data.advisories %}
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Advisory ID</th>
+                            <th>Title</th>
+                            <th>Severity</th>
+                            <th>CVE</th>
+                            <th>Published</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for advisory in psirt_data.advisories %}
+                        <tr>
+                            <td>
+                                <a href="https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/{{ advisory.advisoryId }}" target="_blank" class="text-decoration-none">
+                                    <i class="mdi mdi-open-in-new"></i> {{ advisory.advisoryId }}
+                                </a>
+                            </td>
+                            <td>{{ advisory.advisoryTitle|truncatechars:60 }}</td>
+                            <td>
+                                {% if advisory.sir == "Critical" %}
+                                <span class="badge bg-danger text-white">Critical</span>
+                                {% elif advisory.sir == "High" %}
+                                <span class="badge bg-warning text-dark">High</span>
+                                {% elif advisory.sir == "Medium" %}
+                                <span class="badge bg-info text-dark">Medium</span>
+                                {% else %}
+                                <span class="badge bg-secondary text-white">{{ advisory.sir|default:"N/A" }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if advisory.cves %}
+                                {{ advisory.cves|join:", "|truncatechars:30 }}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ advisory.firstPublished|default:"N/A" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if psirt_data.total > 10 %}
+            <div class="mt-2 text-muted small">
+                Showing 10 of {{ psirt_data.total }} advisories
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="text-success">
+                <i class="mdi mdi-check-circle"></i> No security advisories found for this product
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Bugs Card -->
+{% if bugs_data %}
+<div class="card mb-3">
+    <div class="card-header" data-bs-toggle="collapse" data-bs-target="#bugs-section" style="cursor: pointer;">
+        <h5 class="card-title mb-0">
+            <i class="mdi mdi-bug"></i> Known Bugs (Keyword Search)
+            {% if bugs_data.bugs %}
+            <span class="badge bg-warning text-dark ms-2">{{ bugs_data.bugs|length }} Bug{{ bugs_data.bugs|length|pluralize }}</span>
+            {% else %}
+            <span class="badge bg-success text-white ms-2">No Critical Bugs</span>
+            {% endif %}
+            {% if bugs_data.cached %}
+            <span class="badge bg-secondary text-white ms-2"><i class="mdi mdi-cached"></i> Cached</span>
+            {% endif %}
+            <i class="mdi mdi-chevron-down float-end"></i>
+        </h5>
+    </div>
+    <div id="bugs-section" class="collapse show">
+        <div class="card-body">
+            {% if bugs_data.bugs %}
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Bug ID</th>
+                            <th>Headline</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bug in bugs_data.bugs %}
+                        <tr>
+                            <td>
+                                <a href="https://bst.cloudapps.cisco.com/bugsearch/bug/{{ bug.bug_id }}" target="_blank" class="text-decoration-none">
+                                    <i class="mdi mdi-open-in-new"></i> {{ bug.bug_id }}
+                                </a>
+                            </td>
+                            <td>{{ bug.headline|truncatechars:60 }}</td>
+                            <td>
+                                {% if bug.severity == "1" %}
+                                <span class="badge bg-danger text-white">Sev 1 - Catastrophic</span>
+                                {% elif bug.severity == "2" %}
+                                <span class="badge bg-danger text-white">Sev 2 - Severe</span>
+                                {% elif bug.severity == "3" %}
+                                <span class="badge bg-warning text-dark">Sev 3 - Moderate</span>
+                                {% elif bug.severity == "4" %}
+                                <span class="badge bg-info text-dark">Sev 4 - Minor</span>
+                                {% elif bug.severity == "5" %}
+                                <span class="badge bg-secondary text-white">Sev 5 - Cosmetic</span>
+                                {% elif bug.severity == "6" %}
+                                <span class="badge bg-secondary text-white">Sev 6 - Enhancement</span>
+                                {% else %}
+                                <span class="badge bg-secondary text-white">{{ bug.severity|default:"N/A" }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if bug.status == "O" %}
+                                <span class="badge bg-danger text-white">Open</span>
+                                {% elif bug.status == "F" %}
+                                <span class="badge bg-success text-white">Fixed</span>
+                                {% elif bug.status == "T" %}
+                                <span class="badge bg-secondary text-white">Terminated</span>
+                                {% elif bug.status == "U" %}
+                                <span class="badge bg-info text-dark">Unreproducible</span>
+                                {% else %}
+                                <span class="badge bg-secondary text-white">{{ bug.status|default:"N/A" }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-success">
+                <i class="mdi mdi-check-circle"></i> No critical bugs (severity 1-3) found
+            </div>
+            {% endif %}
+            <div class="mt-2 text-muted small">
+                Keyword search for "<code>{{ object.device_type.model }}</code>" - showing high severity bugs (1-3)
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Version-Specific Bugs Card -->
+{% if bugs_version_data %}
+<div class="card mb-3">
+    <div class="card-header" data-bs-toggle="collapse" data-bs-target="#bugs-version-section" style="cursor: pointer;">
+        <h5 class="card-title mb-0">
+            <i class="mdi mdi-bug"></i> Bugs for Version {{ bugs_version_data.version }}
+            {% if bugs_version_data.bugs %}
+            <span class="badge bg-warning text-dark ms-2">{{ bugs_version_data.bugs|length }} Bug{{ bugs_version_data.bugs|length|pluralize }}</span>
+            {% else %}
+            <span class="badge bg-success text-white ms-2">No Critical Bugs</span>
+            {% endif %}
+            {% if bugs_version_data.cached %}
+            <span class="badge bg-secondary text-white ms-2"><i class="mdi mdi-cached"></i> Cached</span>
+            {% endif %}
+            <i class="mdi mdi-chevron-down float-end"></i>
+        </h5>
+    </div>
+    <div id="bugs-version-section" class="collapse {% if bugs_version_data.bugs %}show{% endif %}">
+        <div class="card-body">
+            {% if bugs_version_data.bugs %}
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Bug ID</th>
+                            <th>Headline</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                            <th>Known Affected</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bug in bugs_version_data.bugs %}
+                        <tr>
+                            <td>
+                                <a href="https://bst.cloudapps.cisco.com/bugsearch/bug/{{ bug.bug_id }}" target="_blank" class="text-decoration-none">
+                                    <i class="mdi mdi-open-in-new"></i> {{ bug.bug_id }}
+                                </a>
+                            </td>
+                            <td>{{ bug.headline|truncatechars:60 }}</td>
+                            <td>
+                                {% if bug.severity == "1" %}
+                                <span class="badge bg-danger text-white">Sev 1 - Catastrophic</span>
+                                {% elif bug.severity == "2" %}
+                                <span class="badge bg-danger text-white">Sev 2 - Severe</span>
+                                {% elif bug.severity == "3" %}
+                                <span class="badge bg-warning text-dark">Sev 3 - Moderate</span>
+                                {% elif bug.severity == "4" %}
+                                <span class="badge bg-info text-dark">Sev 4 - Minor</span>
+                                {% elif bug.severity == "5" %}
+                                <span class="badge bg-secondary text-white">Sev 5 - Cosmetic</span>
+                                {% elif bug.severity == "6" %}
+                                <span class="badge bg-secondary text-white">Sev 6 - Enhancement</span>
+                                {% else %}
+                                <span class="badge bg-secondary text-white">{{ bug.severity|default:"N/A" }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if bug.status == "O" %}
+                                <span class="badge bg-danger text-white">Open</span>
+                                {% elif bug.status == "F" %}
+                                <span class="badge bg-success text-white">Fixed</span>
+                                {% elif bug.status == "T" %}
+                                <span class="badge bg-secondary text-white">Terminated</span>
+                                {% elif bug.status == "U" %}
+                                <span class="badge bg-info text-dark">Unreproducible</span>
+                                {% else %}
+                                <span class="badge bg-secondary text-white">{{ bug.status|default:"N/A" }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if bug.known_affected_releases %}
+                                <small>{{ bug.known_affected_releases|truncatechars:30 }}</small>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-2 text-muted small">
+                Bugs affecting <code>{% firstof cc_series product_id object.device_type.model %}</code> version <code>{{ bugs_version_data.version }}</code>
+            </div>
+            {% else %}
+            <div class="text-success">
+                <i class="mdi mdi-check-circle"></i> No critical bugs (severity 1-3) found for {% firstof cc_series product_id object.device_type.model %} version {{ bugs_version_data.version }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Software Suggestions Card -->
+{% if software_data and software_data.productList %}
+<div class="card mb-3">
+    <div class="card-header" data-bs-toggle="collapse" data-bs-target="#software-section" style="cursor: pointer;">
+        <h5 class="card-title mb-0">
+            <i class="mdi mdi-download"></i> Software Recommendations
+            {% if software_data.cached %}
+            <span class="badge bg-secondary text-white ms-2"><i class="mdi mdi-cached"></i> Cached</span>
+            {% endif %}
+            <i class="mdi mdi-chevron-down float-end"></i>
+        </h5>
+    </div>
+    <div id="software-section" class="collapse show">
+        <div class="card-body">
+            {% for product in software_data.productList %}
+            {% if product.suggestions %}
+            {% with prod_info=product.product %}
+            {% if prod_info.productName or prod_info.basePID %}
+            <h6 class="mb-2">
+                {% firstof prod_info.productName prod_info.basePID product_id %}
+                {% if prod_info.softwareType %}
+                <small class="text-muted">({{ prod_info.softwareType }})</small>
+                {% endif %}
+            </h6>
+            {% endif %}
+            {% endwith %}
+            {% with first_suggestion=product.suggestions.0 %}
+            {% if first_suggestion.errorDetailsResponse.errorDescription %}
+            <div class="text-muted">
+                <i class="mdi mdi-information"></i> No software recommendations available for {{ product_id }}
+            </div>
+            {% else %}
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Release</th>
+                            <th>Version</th>
+                            <th>Release Date</th>
+                            <th>Lifecycle</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for suggestion in product.suggestions %}
+                    {% if suggestion.releaseTrain or suggestion.releaseFormat1 or suggestion.relDispName %}
+                    <tr>
+                        <td>{% firstof suggestion.trainDispName suggestion.releaseTrain "N/A" %}</td>
+                        <td><code>{% firstof suggestion.releaseFormat1 suggestion.relDispName "N/A" %}</code></td>
+                        <td>{% firstof suggestion.releaseDate "N/A" %}</td>
+                        <td>{% firstof suggestion.releaseLifeCycle "N/A" %}</td>
+                        <td>
+                            {% if suggestion.isSuggested == "Y" %}
+                            <span class="badge bg-success text-white">Recommended</span>
+                            {% else %}
+                            <span class="badge bg-secondary text-white">Available</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
+            {% empty %}
+            <div class="text-muted">
+                <i class="mdi mdi-information"></i> No software suggestions available for this product
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Search All Bugs Fallback - only show if no bug cards displayed -->
+{% if not bugs_data and not bugs_version_data %}
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="text-muted">
+            <i class="mdi mdi-information"></i> No bug data available from Cisco API.
+            {% if product_id or object.device_type.model %}
+            <a href="https://bst.cloudapps.cisco.com/bugsearch/search?kw={% firstof product_id object.device_type.model %}" target="_blank" class="btn btn-outline-warning btn-sm ms-2">
+                <i class="mdi mdi-bug"></i> Search Bugs on Cisco
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info">
+    <i class="mdi mdi-information"></i> No product data available from Cisco Support API for serial number <code>{{ serial_number }}</code>.
+</div>
+{% endif %}

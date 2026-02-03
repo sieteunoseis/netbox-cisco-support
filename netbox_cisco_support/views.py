@@ -8,7 +8,9 @@ import re
 from dcim.models import Device
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.http import HttpResponse
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.views import View
 from netbox.views.generic import ObjectView
 from utilities.views import ViewTab, register_model_view
@@ -42,9 +44,76 @@ def should_show_cisco_support_tab(device):
     return bool(re.search(pattern, manufacturer_name, re.IGNORECASE))
 
 
+def parse_serials(serial_field):
+    """
+    Parse serial number field which may contain comma-separated stack members.
+
+    Args:
+        serial_field: Device serial field value (e.g., "FCW2220G1DM, FCW2221E03P")
+
+    Returns:
+        List of serial numbers, with primary first.
+    """
+    if not serial_field:
+        return []
+
+    # Split by comma and clean up
+    serials = [s.strip() for s in serial_field.split(",") if s.strip()]
+    return serials
+
+
+def get_software_version(device):
+    """
+    Get software version from device custom fields or platform.
+
+    Checks for:
+    1. Custom field 'software_version' or 'sw_version'
+    2. Device platform description
+    """
+    # Check custom fields
+    if hasattr(device, "custom_field_data") and device.custom_field_data:
+        for field in ["software_version", "sw_version", "ios_version", "version"]:
+            if (
+                field in device.custom_field_data
+                and device.custom_field_data[field]
+            ):
+                return str(device.custom_field_data[field])
+
+    # Check platform (sometimes includes version info)
+    if device.platform and device.platform.name:
+        # Try to extract version from platform name if it looks like a version
+        match = re.search(r"(\d+\.\d+(?:\.\d+)?)", device.platform.name)
+        if match:
+            return match.group(1)
+
+    return None
+
+
+def get_stack_serials(device):
+    """
+    Get additional stack member serial numbers from custom fields.
+
+    This is a fallback when device.serial doesn't contain comma-separated values.
+
+    Checks custom fields: 'stack_serials', 'stack_members', 'member_serials'
+
+    Returns list of additional serial numbers.
+    """
+    if not hasattr(device, "custom_field_data") or not device.custom_field_data:
+        return []
+
+    for field in ["stack_serials", "stack_members", "member_serials"]:
+        if field in device.custom_field_data and device.custom_field_data[field]:
+            value = str(device.custom_field_data[field])
+            serials = [s.strip() for s in re.split(r"[,;\s]+", value) if s.strip()]
+            return serials
+
+    return []
+
+
 @register_model_view(Device, "cisco_support", path="cisco-support")
 class DeviceCiscoSupportView(ObjectView):
-    """Display Cisco Support information for a device."""
+    """Display Cisco Support information for a device with async loading."""
 
     queryset = Device.objects.all()
     template_name = "netbox_cisco_support/device_tab.html"
@@ -57,6 +126,7 @@ class DeviceCiscoSupportView(ObjectView):
     )
 
     def get(self, request, pk):
+        """Render initial tab with loading spinner - content loads via htmx."""
         device = Device.objects.select_related(
             "device_type__manufacturer", "platform"
         ).get(pk=pk)
@@ -74,18 +144,42 @@ class DeviceCiscoSupportView(ObjectView):
                 },
             )
 
+        # Render loading state - htmx will fetch content
+        return render(
+            request,
+            self.template_name,
+            {
+                "object": device,
+                "tab": self.tab,
+                "show_tab": True,
+                "loading": True,
+            },
+        )
+
+
+class DeviceCiscoSupportContentView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """HTMX endpoint that returns Cisco Support content for async loading."""
+
+    permission_required = "dcim.view_device"
+
+    def get(self, request, pk):
+        """Fetch Cisco Support data and return HTML content."""
+        device = Device.objects.select_related(
+            "device_type__manufacturer", "platform"
+        ).get(pk=pk)
+
         # Get Cisco client
         client = get_client()
         if not client:
-            return render(
-                request,
-                self.template_name,
-                {
-                    "object": device,
-                    "tab": self.tab,
-                    "show_tab": True,
-                    "error": "Cisco Support API credentials not configured",
-                },
+            return HttpResponse(
+                render_to_string(
+                    "netbox_cisco_support/device_tab_content.html",
+                    {
+                        "object": device,
+                        "error": "Cisco Support API credentials not configured",
+                    },
+                    request=request,
+                )
             )
 
         # Initialize data containers
@@ -103,14 +197,14 @@ class DeviceCiscoSupportView(ObjectView):
         error = None
 
         # Get software version from custom fields or platform
-        software_version = self._get_software_version(device)
+        software_version = get_software_version(device)
 
         # Parse serial numbers - device.serial may contain comma-separated stack members
         # e.g., "FCW2220G1DM, FCW2221E03P" for a 2-member stack
-        all_serials = self._parse_serials(device.serial)
+        all_serials = parse_serials(device.serial)
         serial_number = all_serials[0] if all_serials else device.serial
         stack_serials = (
-            all_serials[1:] if len(all_serials) > 1 else self._get_stack_serials(device)
+            all_serials[1:] if len(all_serials) > 1 else get_stack_serials(device)
         )
 
         # Step 1: Get product info from serial number
@@ -257,92 +351,29 @@ class DeviceCiscoSupportView(ObjectView):
                         "cached": stack_response.get("cached", False),
                     }
 
-        return render(
-            request,
-            self.template_name,
-            {
-                "object": device,
-                "tab": self.tab,
-                "show_tab": True,
-                "error": error,
-                "serial_number": serial_number,
-                "product_id": product_id,
-                "cc_series": cc_series,
-                "software_version": software_version,
-                "product_data": product_data,
-                "eox_data": eox_data,
-                "bugs_data": bugs_data,
-                "bugs_version_data": bugs_version_data,
-                "psirt_data": psirt_data,
-                "software_data": software_data,
-                "coverage_data": coverage_data,
-                "stack_coverage_data": stack_coverage_data,
-            },
+        # Return just the content HTML for htmx to inject
+        return HttpResponse(
+            render_to_string(
+                "netbox_cisco_support/device_tab_content.html",
+                {
+                    "object": device,
+                    "error": error,
+                    "serial_number": serial_number,
+                    "product_id": product_id,
+                    "cc_series": cc_series,
+                    "software_version": software_version,
+                    "product_data": product_data,
+                    "eox_data": eox_data,
+                    "bugs_data": bugs_data,
+                    "bugs_version_data": bugs_version_data,
+                    "psirt_data": psirt_data,
+                    "software_data": software_data,
+                    "coverage_data": coverage_data,
+                    "stack_coverage_data": stack_coverage_data,
+                },
+                request=request,
+            )
         )
-
-    def _parse_serials(self, serial_field):
-        """
-        Parse serial number field which may contain comma-separated stack members.
-
-        Args:
-            serial_field: Device serial field value (e.g., "FCW2220G1DM, FCW2221E03P")
-
-        Returns:
-            List of serial numbers, with primary first.
-        """
-        if not serial_field:
-            return []
-
-        # Split by comma and clean up
-        serials = [s.strip() for s in serial_field.split(",") if s.strip()]
-        return serials
-
-    def _get_software_version(self, device):
-        """
-        Get software version from device custom fields or platform.
-
-        Checks for:
-        1. Custom field 'software_version' or 'sw_version'
-        2. Device platform description
-        """
-        # Check custom fields
-        if hasattr(device, "custom_field_data") and device.custom_field_data:
-            for field in ["software_version", "sw_version", "ios_version", "version"]:
-                if (
-                    field in device.custom_field_data
-                    and device.custom_field_data[field]
-                ):
-                    return str(device.custom_field_data[field])
-
-        # Check platform (sometimes includes version info)
-        if device.platform and device.platform.name:
-            # Try to extract version from platform name if it looks like a version
-            match = re.search(r"(\d+\.\d+(?:\.\d+)?)", device.platform.name)
-            if match:
-                return match.group(1)
-
-        return None
-
-    def _get_stack_serials(self, device):
-        """
-        Get additional stack member serial numbers from custom fields.
-
-        This is a fallback when device.serial doesn't contain comma-separated values.
-
-        Checks custom fields: 'stack_serials', 'stack_members', 'member_serials'
-
-        Returns list of additional serial numbers.
-        """
-        if not hasattr(device, "custom_field_data") or not device.custom_field_data:
-            return []
-
-        for field in ["stack_serials", "stack_members", "member_serials"]:
-            if field in device.custom_field_data and device.custom_field_data[field]:
-                value = str(device.custom_field_data[field])
-                serials = [s.strip() for s in re.split(r"[,;\s]+", value) if s.strip()]
-                return serials
-
-        return []
 
 
 class CiscoSupportSettingsView(LoginRequiredMixin, PermissionRequiredMixin, View):
