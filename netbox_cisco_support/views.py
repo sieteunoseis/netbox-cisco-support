@@ -73,10 +73,7 @@ def get_software_version(device):
     # Check custom fields
     if hasattr(device, "custom_field_data") and device.custom_field_data:
         for field in ["software_version", "sw_version", "ios_version", "version"]:
-            if (
-                field in device.custom_field_data
-                and device.custom_field_data[field]
-            ):
+            if field in device.custom_field_data and device.custom_field_data[field]:
                 return str(device.custom_field_data[field])
 
     # Check platform (sometimes includes version info)

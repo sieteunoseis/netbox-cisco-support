@@ -7,7 +7,7 @@ for devices with valid serial numbers from Cisco manufacturer.
 
 from netbox.plugins import PluginConfig
 
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 
 
 class CiscoSupportConfig(PluginConfig):

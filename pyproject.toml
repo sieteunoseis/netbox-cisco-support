@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-cisco-support-api"
-version = "1.0.7"
+version = "1.0.8"
 description = "NetBox plugin for Cisco Support information including product details, EoX dates, bugs, and security advisories"
 readme = "README.md"
 license = {text = "Apache-2.0"}
