@@ -116,7 +116,7 @@ class DeviceCiscoSupportView(ObjectView):
     template_name = "netbox_cisco_support/device_tab.html"
     tab = ViewTab(
         label="Cisco Support",
-        weight=9100,
+        weight=9003,
         permission="dcim.view_device",
         hide_if_empty=False,
         visible=should_show_cisco_support_tab,

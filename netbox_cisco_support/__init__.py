@@ -7,14 +7,14 @@ for devices with valid serial numbers from Cisco manufacturer.
 
 from netbox.plugins import PluginConfig
 
-__version__ = "1.0.8"
+__version__ = "1.0.9"
 
 
 class CiscoSupportConfig(PluginConfig):
     """Plugin configuration for NetBox Cisco Support."""
 
     name = "netbox_cisco_support"
-    verbose_name = "Cisco Support"
+    verbose_name = "NetBox Cisco Support"
     description = "Display Cisco Support information including product details, EoX dates, bugs, and security advisories"
     version = __version__
     author = "Jeremy Worden"
