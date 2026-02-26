@@ -124,9 +124,7 @@ class DeviceCiscoSupportView(ObjectView):
 
     def get(self, request, pk):
         """Render initial tab with loading spinner - content loads via htmx."""
-        device = Device.objects.select_related(
-            "device_type__manufacturer", "platform"
-        ).get(pk=pk)
+        device = Device.objects.select_related("device_type__manufacturer", "platform").get(pk=pk)
 
         # Check if tab should be shown
         if not should_show_cisco_support_tab(device):
@@ -161,9 +159,7 @@ class DeviceCiscoSupportContentView(LoginRequiredMixin, PermissionRequiredMixin,
 
     def get(self, request, pk):
         """Fetch Cisco Support data and return HTML content."""
-        device = Device.objects.select_related(
-            "device_type__manufacturer", "platform"
-        ).get(pk=pk)
+        device = Device.objects.select_related("device_type__manufacturer", "platform").get(pk=pk)
 
         # Get Cisco client
         client = get_client()
@@ -200,9 +196,7 @@ class DeviceCiscoSupportContentView(LoginRequiredMixin, PermissionRequiredMixin,
         # e.g., "FCW2220G1DM, FCW2221E03P" for a 2-member stack
         all_serials = parse_serials(device.serial)
         serial_number = all_serials[0] if all_serials else device.serial
-        stack_serials = (
-            all_serials[1:] if len(all_serials) > 1 else get_stack_serials(device)
-        )
+        stack_serials = all_serials[1:] if len(all_serials) > 1 else get_stack_serials(device)
 
         # Step 1: Get product info from serial number
         product_response = client.get_product_info(serial_number)
@@ -213,9 +207,7 @@ class DeviceCiscoSupportContentView(LoginRequiredMixin, PermissionRequiredMixin,
             product_list = product_response.get("product_list", [])
             if product_list:
                 product_data = product_list[0]
-                product_id = product_data.get("base_pid") or product_data.get(
-                    "orderable_pid"
-                )
+                product_id = product_data.get("base_pid") or product_data.get("orderable_pid")
                 product_data["cached"] = product_response.get("cached", False)
 
         # Get device type model as fallback product ID (e.g., "C9300-48P" from device type)
@@ -248,19 +240,13 @@ class DeviceCiscoSupportContentView(LoginRequiredMixin, PermissionRequiredMixin,
             bugs_response = client.get_bugs_by_keyword(device_type_model)
 
         # Approach 2: Fall back to product_id endpoint
-        if (
-            (bugs_response is None or "error" in bugs_response)
-            and bug_pid
-            and not error
-        ):
+        if (bugs_response is None or "error" in bugs_response) and bug_pid and not error:
             bugs_response = client.get_bugs_by_product(bug_pid)
 
         if bugs_response and "error" not in bugs_response:
             # Filter for high severity bugs (1-3) client-side
             all_bugs = bugs_response.get("bugs", [])
-            high_severity_bugs = [
-                b for b in all_bugs if b.get("severity") in ["1", "2", "3", 1, 2, 3]
-            ][:5]
+            high_severity_bugs = [b for b in all_bugs if b.get("severity") in ["1", "2", "3", 1, 2, 3]][:5]
             bugs_data = {
                 "bugs": high_severity_bugs if high_severity_bugs else all_bugs[:5],
                 "cached": bugs_response.get("cached", False),
@@ -272,28 +258,18 @@ class DeviceCiscoSupportContentView(LoginRequiredMixin, PermissionRequiredMixin,
         if software_version and not error:
             # Try product_name + affected_releases if cc_series available
             if cc_series:
-                bugs_ver_response = client.get_bugs_by_product_name_and_version(
-                    cc_series, software_version
-                )
+                bugs_ver_response = client.get_bugs_by_product_name_and_version(cc_series, software_version)
 
             # Fall back to product_id + software_releases if available
             if (bugs_ver_response is None or "error" in bugs_ver_response) and bug_pid:
-                bugs_ver_response = client.get_bugs_by_product_and_version(
-                    bug_pid, software_version
-                )
+                bugs_ver_response = client.get_bugs_by_product_and_version(bug_pid, software_version)
 
         if bugs_ver_response and "error" not in bugs_ver_response:
             # Filter for high severity bugs (1-3) client-side
             all_ver_bugs = bugs_ver_response.get("bugs", [])
-            high_severity_ver_bugs = [
-                b for b in all_ver_bugs if b.get("severity") in ["1", "2", "3", 1, 2, 3]
-            ][:5]
+            high_severity_ver_bugs = [b for b in all_ver_bugs if b.get("severity") in ["1", "2", "3", 1, 2, 3]][:5]
             bugs_version_data = {
-                "bugs": (
-                    high_severity_ver_bugs
-                    if high_severity_ver_bugs
-                    else all_ver_bugs[:5]
-                ),
+                "bugs": (high_severity_ver_bugs if high_severity_ver_bugs else all_ver_bugs[:5]),
                 "version": software_version,
                 "cached": bugs_ver_response.get("cached", False),
             }
@@ -328,17 +304,13 @@ class DeviceCiscoSupportContentView(LoginRequiredMixin, PermissionRequiredMixin,
         # Step 6b: Get stack coverage (if stack serials available)
         if stack_serials and not error:
             # Include primary serial in the list if not already there
-            all_serials = [serial_number] + [
-                s for s in stack_serials if s != serial_number
-            ]
+            all_serials = [serial_number] + [s for s in stack_serials if s != serial_number]
             stack_response = client.get_coverage_summary_bulk(all_serials)
             if "error" not in stack_response:
                 stack_serial_list = stack_response.get("serial_numbers", [])
                 if stack_serial_list:
                     # Calculate summary stats
-                    covered = sum(
-                        1 for s in stack_serial_list if s.get("is_covered") == "YES"
-                    )
+                    covered = sum(1 for s in stack_serial_list if s.get("is_covered") == "YES")
                     not_covered = len(stack_serial_list) - covered
                     stack_coverage_data = {
                         "members": stack_serial_list,

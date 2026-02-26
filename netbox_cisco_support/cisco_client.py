@@ -400,9 +400,7 @@ class CiscoSupportClient:
             cached["cached"] = True
             return cached
 
-        endpoint = (
-            f"/software/suggestion/v2/suggestions/software/productIds/{product_id}"
-        )
+        endpoint = f"/software/suggestion/v2/suggestions/software/productIds/{product_id}"
         result = self._make_request(endpoint)
 
         if "error" not in result:

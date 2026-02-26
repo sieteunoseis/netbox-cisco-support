@@ -15,13 +15,15 @@ class CiscoSupportConfig(PluginConfig):
 
     name = "netbox_cisco_support"
     verbose_name = "NetBox Cisco Support"
-    description = "Display Cisco Support information including product details, EoX dates, bugs, and security advisories"
+    description = (
+        "Display Cisco Support information including product details, EoX dates, bugs, and security advisories"
+    )
     version = __version__
     author = "Jeremy Worden"
     author_email = "jeremy.worden@gmail.com"
     base_url = "cisco-support"
     min_version = "4.0.0"
-    max_version = "4.99"
+    max_version = "5.99"
 
     default_settings = {
         "cisco_client_id": "",
