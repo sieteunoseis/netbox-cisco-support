@@ -155,7 +155,7 @@ class DeviceCiscoSupportView(ObjectView):
 class DeviceCiscoSupportContentView(LoginRequiredMixin, PermissionRequiredMixin, View):
     """HTMX endpoint that returns Cisco Support content for async loading."""
 
-    permission_required = "dcim.view_device"
+    permission_required = "netbox_cisco_support.configure_ciscosupport"
 
     def get(self, request, pk):
         """Fetch Cisco Support data and return HTML content."""

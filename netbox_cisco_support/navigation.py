@@ -13,6 +13,7 @@ menu = PluginMenu(
                 PluginMenuItem(
                     link="plugins:netbox_cisco_support:settings",
                     link_text="Settings",
+                    permissions=["netbox_cisco_support.configure_ciscosupport"],
                     buttons=(
                         PluginMenuButton(
                             link="plugins:netbox_cisco_support:test_connection",
