@@ -7,6 +7,4 @@ class CiscoSupport(models.Model):
     class Meta:
         managed = False
         default_permissions = ()
-        permissions = (
-            ("configure_ciscosupport", "Can configure Cisco Support plugin settings"),
-        )
+        permissions = (("configure_ciscosupport", "Can configure Cisco Support plugin settings"),)
