@@ -1,0 +1,79 @@
+{% load i18n %}
+
+{% if error %}
+  <div class="text-center py-2">
+    <span class="text-danger">
+      <i class="mdi mdi-alert"></i> {{ error }}
+    </span>
+  </div>
+{% elif eox or psirt %}
+  {% if eox %}
+  <div class="mb-2">
+    <div class="small fw-bold text-muted mb-1">{% trans "End-of-Life Status" %}</div>
+    <div class="d-flex flex-wrap justify-content-center gap-3">
+      {% if eox.past_end_of_sale %}
+      <div class="text-center">
+        <span class="badge bg-warning text-dark fs-5 px-3 py-2">{{ eox.past_end_of_sale }}</span>
+        <div class="mt-1 small fw-bold text-muted">{% trans "Past EoSale" %}</div>
+      </div>
+      {% endif %}
+      {% if eox.past_end_of_vuln_support %}
+      <div class="text-center">
+        <span class="badge bg-danger text-white fs-5 px-3 py-2">{{ eox.past_end_of_vuln_support }}</span>
+        <div class="mt-1 small fw-bold text-muted">{% trans "Past EoVuln" %}</div>
+      </div>
+      {% endif %}
+      {% if eox.past_end_of_support %}
+      <div class="text-center">
+        <span class="badge bg-dark text-white fs-5 px-3 py-2">{{ eox.past_end_of_support }}</span>
+        <div class="mt-1 small fw-bold text-muted">{% trans "Past EoSupport" %}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if psirt %}
+  <div class="mb-2">
+    <div class="small fw-bold text-muted mb-1">{% trans "PSIRT Advisories" %}</div>
+    <div class="d-flex flex-wrap justify-content-center gap-3">
+      {% if psirt.critical %}
+      <div class="text-center">
+        <span class="badge bg-danger text-white fs-5 px-3 py-2">{{ psirt.critical }}</span>
+        <div class="mt-1 small fw-bold text-muted">{% trans "Critical" %}</div>
+      </div>
+      {% endif %}
+      {% if psirt.high %}
+      <div class="text-center">
+        <span class="badge bg-warning text-dark fs-5 px-3 py-2">{{ psirt.high }}</span>
+        <div class="mt-1 small fw-bold text-muted">{% trans "High" %}</div>
+      </div>
+      {% endif %}
+      {% if psirt.medium %}
+      <div class="text-center">
+        <span class="badge bg-info text-dark fs-5 px-3 py-2">{{ psirt.medium }}</span>
+        <div class="mt-1 small fw-bold text-muted">{% trans "Medium" %}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="text-center border-top pt-2 mt-2">
+    <span class="text-muted small">{% trans "Cisco Devices" %}: </span>
+    <span class="fw-bold">{{ total_devices }}</span>
+  </div>
+
+  <div class="d-flex justify-content-end align-items-center mt-2 px-1">
+    {% if cached %}
+      <small class="text-muted"><i class="mdi mdi-cached"></i> {% trans "Cached" %}</small>
+    {% else %}
+      <small class="text-muted"><i class="mdi mdi-check-circle"></i> {% trans "Live" %}</small>
+    {% endif %}
+  </div>
+{% else %}
+  <p class="text-center text-muted py-2">
+    <i class="mdi mdi-information-outline"></i>
+    {% trans "No lifecycle data available." %}
+  </p>
+{% endif %}

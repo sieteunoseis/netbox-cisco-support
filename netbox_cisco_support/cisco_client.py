@@ -472,6 +472,111 @@ class CiscoSupportClient:
             return {"success": True, "message": "Successfully connected to Cisco API"}
         return {"success": False, "message": "Failed to authenticate with Cisco API"}
 
+    def get_lifecycle_summary(self, cache_timeout=3600):
+        """Get aggregate EoX and PSIRT summary across all Cisco devices in NetBox.
+
+        Queries NetBox for Cisco devices, then checks EoX status and PSIRT advisories.
+
+        Returns:
+            dict with {eox, psirt, total_devices, cached} or {error}
+        """
+        cache_key = "cisco_lifecycle_summary"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            cached["cached"] = True
+            return cached
+
+        from datetime import date
+
+        from dcim.models import Device
+
+        config = settings.PLUGINS_CONFIG.get("netbox_cisco_support", {})
+        pattern = config.get("manufacturer_pattern", r"cisco")
+
+        devices = (
+            Device.objects.filter(
+                device_type__manufacturer__name__iregex=pattern,
+                serial__gt="",
+            )
+            .select_related("device_type__manufacturer")
+            .only("serial", "device_type")
+        )
+
+        if not devices.exists():
+            return {"error": "No Cisco devices with serial numbers found"}
+
+        today = date.today()
+        eox = {"past_end_of_sale": 0, "past_end_of_support": 0, "past_end_of_vuln_support": 0}
+        psirt_counts = {"critical": 0, "high": 0, "medium": 0}
+        seen_serials = set()
+        seen_advisories = set()
+        seen_pids = set()
+
+        for device in devices:
+            serial = device.serial.strip()
+            if not serial or serial in seen_serials:
+                continue
+            seen_serials.add(serial)
+
+            # EoX lookup
+            try:
+                eox_result = self.get_eox_by_serial(serial)
+                if "error" not in eox_result:
+                    for record in eox_result.get("EOXRecord", []):
+                        eos_date = record.get("EndOfSaleDate", {}).get("value", "")
+                        eol_date = record.get("LastDateOfSupport", {}).get("value", "")
+                        eov_date = record.get("EndOfSecurityVulSupportDate", {}).get("value", "")
+
+                        if eos_date and self._parse_eox_date(eos_date, today):
+                            eox["past_end_of_sale"] += 1
+                        if eol_date and self._parse_eox_date(eol_date, today):
+                            eox["past_end_of_support"] += 1
+                        if eov_date and self._parse_eox_date(eov_date, today):
+                            eox["past_end_of_vuln_support"] += 1
+            except Exception as e:
+                logger.debug(f"EoX lookup failed for {serial}: {e}")
+
+            # PSIRT lookup by product ID (deduplicate across devices with same PID)
+            pid = getattr(device.device_type, "part_number", "") or device.device_type.model
+            if pid and pid not in seen_pids:
+                seen_pids.add(pid)
+                try:
+                    psirt_result = self.get_psirt_by_product(pid)
+                    if "error" not in psirt_result:
+                        for advisory in psirt_result.get("advisories", []):
+                            adv_id = advisory.get("advisoryId", "")
+                            if adv_id and adv_id not in seen_advisories:
+                                seen_advisories.add(adv_id)
+                                sir = (advisory.get("sir") or "").lower()
+                                if sir == "critical":
+                                    psirt_counts["critical"] += 1
+                                elif sir == "high":
+                                    psirt_counts["high"] += 1
+                                elif sir == "medium":
+                                    psirt_counts["medium"] += 1
+                except Exception as e:
+                    logger.debug(f"PSIRT lookup failed for {pid}: {e}")
+
+        summary = {
+            "eox": eox,
+            "psirt": psirt_counts,
+            "total_devices": len(seen_serials),
+            "cached": False,
+        }
+        cache.set(cache_key, summary, cache_timeout)
+        return summary
+
+    @staticmethod
+    def _parse_eox_date(date_str, today):
+        """Check if an EoX date string is in the past. Returns True if past."""
+        try:
+            from datetime import datetime
+
+            eox_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            return eox_date < today
+        except (ValueError, TypeError):
+            return False
+
 
 def get_client() -> Optional[CiscoSupportClient]:
     """

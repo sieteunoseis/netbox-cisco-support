@@ -140,6 +140,11 @@ The tab displays:
 ### Device Cisco Support Tab
 ![Cisco Support Device Tab](https://raw.githubusercontent.com/sieteunoseis/netbox-cisco-support/main/docs/screenshot-device.png)
 
+### Dashboard Widget
+Cisco lifecycle widget showing End-of-Life status and PSIRT advisories.
+
+![Dashboard Widget](https://raw.githubusercontent.com/sieteunoseis/netbox-cisco-support/main/screenshots/netbox-cisco-support-widget.png)
+
 ## Development
 
 ### Setup
