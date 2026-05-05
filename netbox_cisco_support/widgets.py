@@ -1,7 +1,6 @@
 """Dashboard widgets for the NetBox Cisco Support plugin."""
 
 import logging
-from datetime import date, datetime
 
 from django import forms
 from django.template.loader import render_to_string
