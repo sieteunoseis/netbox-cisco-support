@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.12] - 2026-05-05
+
+### Fixed
+
+- Fix `ProgrammingError: relation "netbox_cisco_support_ciscosupport" does not exist` on NetBox 4.5+ when navigating to `/core/system/`. The unmanaged permission-anchor model is now flagged with `_netbox_private = True`, and a data migration sets `ObjectType.public = False` so NetBox's object-count loop excludes it.
+
 ## [1.0.5] - 2025-01-23
 
 ### Fixed
