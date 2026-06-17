@@ -155,7 +155,10 @@ class DeviceCiscoSupportView(ObjectView):
 class DeviceCiscoSupportContentView(LoginRequiredMixin, PermissionRequiredMixin, View):
     """HTMX endpoint that returns Cisco Support content for async loading."""
 
-    permission_required = "netbox_cisco_support.configure_ciscosupport"
+    # Read-only device data — must match the tab's permission (dcim.view_device) so
+    # non-superusers can load content. Previously required the admin-only
+    # configure_ciscosupport permission, which caused the spinner to hang for them.
+    permission_required = "dcim.view_device"
 
     def get(self, request, pk):
         """Fetch Cisco Support data and return HTML content."""

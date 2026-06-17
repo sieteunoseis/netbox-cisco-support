@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.13] - 2026-06-17
+
+### Fixed
+
+- Cisco Support tab spinner hung indefinitely for non-superusers ([#6](https://github.com/sieteunoseis/netbox-cisco-support/issues/6)). The HTMX content endpoint (`DeviceCiscoSupportContentView`) required the admin-only `netbox_cisco_support.configure_ciscosupport` permission, so users with only `dcim.view_device` got a 403 on the data fetch. The endpoint now requires `dcim.view_device`, matching the tab's own permission. The `configure_ciscosupport` permission still gates the Settings page and nav menu, as intended.
+
 ## [1.0.12] - 2026-05-05
 
 ### Fixed
