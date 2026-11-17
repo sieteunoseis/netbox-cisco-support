@@ -20,6 +20,9 @@ from .forms import CiscoSupportSettingsForm
 
 logger = logging.getLogger(__name__)
 
+# Tab order on object pages; override with PLUGINS_CONFIG["netbox_cisco_support"]["tab_weight"]
+TAB_WEIGHT = settings.PLUGINS_CONFIG.get("netbox_cisco_support", {}).get("tab_weight", 9003)
+
 
 def should_show_cisco_support_tab(device):
     """
@@ -116,7 +119,7 @@ class DeviceCiscoSupportView(ObjectView):
     template_name = "netbox_cisco_support/device_tab.html"
     tab = ViewTab(
         label="Cisco Support",
-        weight=9003,
+        weight=TAB_WEIGHT,
         permission="dcim.view_device",
         hide_if_empty=False,
         visible=should_show_cisco_support_tab,

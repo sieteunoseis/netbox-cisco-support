@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-17
+
+### Added
+- `tab_weight` setting (default `9003`) to control where this plugin's tab sits on object pages, so tab order can be set in config instead of code
+- `top_level_menu` setting (default `True`); set `False` to list this plugin's menu items under the shared "Plugins" menu instead of its own top-level sidebar menu
+
+### Changed
+- Plugin display name shortened to "Cisco Support" (was "NetBox Cisco Support") so it matches the sidebar menu label
+
 ## [1.0.13] - 2026-06-17
 
 ### Fixed
